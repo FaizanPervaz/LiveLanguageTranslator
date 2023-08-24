@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset='utf-8'>
+  <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+  <title>Live Language Translator</title>
+  <meta name='viewport' content='width=device-width, initial-scale=1'>
+  <link rel='stylesheet' type='text/css' media='screen' href='style.css'>
+</head>
+<body>
+  <div class="container">
+    <h1>Live Language Translator</h1>
+    <div class="main">
+      <div class="leftcontainer">
+        <p id="temp1" onclick="first2()">Select Source Language</p>
+        <textarea rows="15" cols="40" id="text1" placeholder="Enter text to translate"></textarea>
+        <div class="labeloption">
+          <label for="dropdown1">Source Language:</label>
+          <select id="dropdown1"></select>
+        </div>
+      </div>
+      <div class="rightcontainer">
+        <textarea rows="15" cols="40" id="text2" placeholder="Translation will appear here" readonly></textarea>
+        <div class="labeloption">
+          <label for="dropdown2">Target Language:</label>
+          <select id="dropdown2"></select>
+        </div>
+      </div>
+    </div>
+    <button onclick="translate2(event)">Translate</button>
+  </div>
+  
+  <script>
+    function first2() {
+      document.getElementById('temp1').innerHTML = 'Urdu';
+    }
+
+    async function fetchLanguages() {
+      try {
+        const url = 'https://rapid-translate.p.rapidapi.com/GetLanguages';
+        const options = {
+          method: 'GET',
+          headers: {
+            'X-RapidAPI-Key': 'bac4e303f0msh5071ed5b8d5d5d6p186c64jsn341aeb374060',
+            'X-RapidAPI-Host': 'rapid-translate.p.rapidapi.com'
+          }
+        };
+
+        const response = await fetch(url, options);
+        const result = await response.json();
+        const dropdowns = document.querySelectorAll('.labeloption select');
+
+        result.data.languages.forEach(language => {
+          const option = document.createElement('option');
+          option.value = language.language;
+          option.textContent = language.name;
+          
+          dropdowns.forEach(dropdown => {
+            dropdown.appendChild(option.cloneNode(true));
+          });
+        });
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    async function translate2(event) {
+      event.preventDefault();
+      const text = document.getElementById('text1').value;
+      const targetLanguage = document.getElementById('dropdown2').value;
+      const sourceLanguage = document.getElementById('dropdown1').value;
+
+      const url = 'https://rapid-translate.p.rapidapi.com/Translate';
+      const options = {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/x-www-form-urlencoded',
+          'X-RapidAPI-Key': 'bac4e303f0msh5071ed5b8d5d5d6p186c64jsn341aeb374060',
+          'X-RapidAPI-Host': 'rapid-translate.p.rapidapi.com'
+        },
+        body: new URLSearchParams({
+          q: text,
+          target: targetLanguage,
+          source: sourceLanguage
+        })
+      };
+
+      try {
+        const response = await fetch(url, options);
+        const result = await response.json();
+        document.getElementById('text2').value = result.data.translations[0].translatedText;
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      fetchLanguages();
+    });
+  </script>
+</body>
+</html>
